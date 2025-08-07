@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Scale } from "lucide-react"
 import { motion } from "framer-motion"
 
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
@@ -65,7 +66,7 @@ export default function Header() {
         textShadow: "0 1px 6px #dbeadf, 0 0.5px 0 #40684D22",
       }}
     >
-      Mitra
+      Samiti
     </span>
   </span>
 </Link>
@@ -97,9 +98,9 @@ export default function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/sign-in">
+            <Link href="/login">
               <Button className="text-white" style={{ backgroundColor: "#40684D" }}>
-                Sign In
+                Sign Up
               </Button>
             </Link>
           </div>
@@ -126,9 +127,9 @@ export default function Header() {
                   </Link>
                 ))}
                 <div className="pt-4 border-t">
-                  <Link href="/sign-in" onClick={() => setIsOpen(false)}>
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
                     <Button className="w-full text-white" style={{ backgroundColor: "#40684D" }}>
-                      Sign In
+                      Sign Up
                     </Button>
                   </Link>
                 </div>
