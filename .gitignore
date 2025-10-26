@@ -26,3 +26,59 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /lib/generated/prisma
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+venv_py311/
+.venv/
+ENV/
+env/
+
+# ML Models & Large Files (DO NOT COMMIT)
+Legal ML/checkpoints/
+Legal ML/datasets/CUAD_full/
+Legal ML/datasets/LegalNER_full/
+Legal ML/datasets/qa/
+Legal ML/datasets/recommendations/
+Legal ML/datasets/risk_scoring/
+Legal ML/datasets/comparison/
+
+# Keep only small config files in checkpoints
+!Legal ML/checkpoints/**/config.json
+!Legal ML/checkpoints/**/README.md
+
+# Logs
+*.log
+logs/
+fastapi.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Test outputs
+test_analysis_result.json
+test_output.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prisma/dev.db

@@ -3,18 +3,21 @@
 import type React from "react"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Upload, FileText, ImageIcon, CheckCircle, Shield, Clock, Zap, AlertCircle } from "lucide-react"
+import { Upload, FileText, ImageIcon, CheckCircle, Shield, Clock, Zap, AlertCircle, Activity } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function UploadPage() {
+  const router = useRouter()
   const [dragActive, setDragActive] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [processed, setProcessed] = useState(false)
+  const [uploadedAnalysisIds, setUploadedAnalysisIds] = useState<string[]>([])
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -44,21 +47,47 @@ export default function UploadPage() {
     }
   }
 
-  const simulateUpload = () => {
+  const simulateUpload = async () => {
     setUploading(true)
     setProgress(0)
+    const analysisIds: string[] = []
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setUploading(false)
-          setProcessed(true)
-          return 100
+    try {
+      let currentProgress = 0
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/documents/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          analysisIds.push(data.analysis_id)
+          console.log('Upload successful:', data)
+          
+          // Update progress
+          currentProgress = ((i + 1) / files.length) * 100
+          setProgress(currentProgress)
+        } else {
+          console.error('Upload failed for:', file.name)
         }
-        return prev + 10
-      })
-    }, 200)
+      }
+
+      setUploadedAnalysisIds(analysisIds)
+      setProcessed(true)
+      
+    } catch (error) {
+      console.error('Upload failed:', error)
+      setUploading(false)
+    }
+  }
+
+  const viewInDashboard = () => {
+    router.push('/dashboard')
   }
 
   const removeFile = (index: number) => {
@@ -544,58 +573,85 @@ export default function UploadPage() {
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-6 w-6 text-[#40684D]" />
-                    <CardTitle className="text-green-800">Processing Complete!</CardTitle>
+                    <CardTitle className="text-green-800">Upload Complete!</CardTitle>
                   </div>
                   <p className="text-green-700">
-                    Your document{files.length > 1 ? "s have" : " has"} been successfully simplified
+                    Your document{files.length > 1 ? "s have" : " has"} been uploaded and analysis has started
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="bg-white rounded-lg p-6 border border-green-200">
-                    <h4 className="font-semibold text-gray-900 mb-4">Sample Output Preview</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">Original Complex Text:</p>
-                        <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-400">
-                          <p className="text-sm text-gray-600 italic">
-                            "The party of the first part hereby agrees to indemnify and hold harmless the party of the
-                            second part from and against any and all claims, demands, losses, costs, expenses..."
+                    <h4 className="font-semibold text-gray-900 mb-4">What's happening now:</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <CheckCircle className="h-5 w-5 text-[#40684D] mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-900">Documents Uploaded</p>
+                          <p className="text-sm text-gray-600">
+                            {files.length} document{files.length > 1 ? "s" : ""} saved successfully
                           </p>
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-[#40684D] mb-2">Simplified Version:</p>
-                        <div className="bg-green-100 p-4 rounded-lg border-l-4 border-[#40684D]">
-                          <p className="text-sm text-green-800">
-                            "You agree to protect and cover any costs if the other party gets in trouble because of this
-                            agreement."
+                      <div className="flex items-start space-x-3">
+                        <Activity className="h-5 w-5 text-blue-600 mt-0.5 animate-pulse" />
+                        <div>
+                          <p className="font-medium text-gray-900">AI Analysis In Progress</p>
+                          <p className="text-sm text-gray-600">
+                            7 AI models are analyzing your document{files.length > 1 ? "s" : ""}
                           </p>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center space-x-2 text-sm text-blue-800">
-                        <AlertCircle className="h-4 w-4" />
-                        <span>
-                          This is a preview. Sign up to see the complete simplified document with key highlights and
-                          explanations.
-                        </span>
+                      <div className="flex items-start space-x-3">
+                        <Clock className="h-5 w-5 text-purple-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-900">Estimated Time</p>
+                          <p className="text-sm text-gray-600">
+                            30-60 seconds per document
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Button className="bg-[#40684D] hover:bg-[#355a42] text-white" size="lg">
-                      Create Free Account
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-[#40684D] text-[#40684D] hover:bg-green-50 bg-transparent"
+                    <Button 
+                      onClick={viewInDashboard}
+                      className="bg-[#40684D] hover:bg-[#355a42] text-white" 
                       size="lg"
                     >
-                      Download Sample PDF
+                      View Results in Dashboard
                     </Button>
+                    <Button
+                      onClick={() => {
+                        setFiles([])
+                        setProcessed(false)
+                        setProgress(0)
+                        setUploadedAnalysisIds([])
+                      }}
+                      variant="outline"
+                      className="border-[#40684D] text-[#40684D] hover:bg-green-50"
+                      size="lg"
+                    >
+                      Upload Another Document
+                    </Button>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start space-x-3">
+                      <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium">AI Models Processing:</p>
+                        <ul className="mt-2 space-y-1">
+                          <li>• Named Entity Recognition</li>
+                          <li>• Clause Classification</li>
+                          <li>• Risk Assessment</li>
+                          <li>• Document Summarization</li>
+                          <li>• Question Answering</li>
+                          <li>• Clause Comparison</li>
+                          <li>• Recommendations</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

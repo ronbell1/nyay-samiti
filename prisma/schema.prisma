@@ -10,6 +10,31 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  content     String?
+  contentType String   @default("text/plain")
+  size        Int
+  uploadedAt  DateTime @default(now())
+  
+  analyses    Analysis[]
+}
+
+model Analysis {
+  id            String   @id @default(cuid())
+  documentId    String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  status        String   @default("pending") // pending, processing, completed, failed
+  progress      Int      @default(0)
+  results       Json?
+  error         String?
+  
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
 }
